@@ -9,15 +9,28 @@ Two references are included which are limited to only those sites targetted by t
 
 If your sample was processed recently, since November of 2013, you may have version 4 results. If you see a suggestion to run on version 4 after your first conversion attempt, please do so, as you will get more usable results.
 
+Git Master
+==========
+```bash
+git clone git://github.com/arrogantrobot/23andme2vcf.git
+```
+
+Updates to the Master
+=====================
+1. Inserted new reference alleles to reference file 23andme_v4_hg19_ref.txt.gz (Updated to May 3, 2015). 
+
+2. Added an parameter to hide non-variant alleles.
+
+3. Added AN, AC and AF tags.
 
 Usage
 =======
 ```bash
-git clone git://github.com/arrogantrobot/23andme2vcf.git
+git clone https://github.com/aquaskyline/23andme2vcf.git
 
 cd 23andme2vcf
 
-perl 23andme2vcf.pl /path/to/23andme_raw.(zip,txt) /path/to/output.vcf
+./23andme2vcf /path/to/23andme/raw_data.(zip,txt) /path/to/output/file.vcf [23andme chip version, 3|4] [Output non-variant alleles, yes|no]
 ```
 
 This tool will work equally well with the compressed raw file (.zip format) or the uncompressed, text file.

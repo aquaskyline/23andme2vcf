@@ -15,6 +15,7 @@ my $skip_count = 0;
 my $raw_path = $ARGV[0];
 my $output_path = $ARGV[1];
 my $version = (defined($ARGV[2])) ? int($ARGV[2]) : 3;
+my $show_ref = (defined($ARGV[3])) ? ( (lc($ARGV[3]) eq "yes" || $ARGV[3] eq "1") ? 1 : 0) : 0;
 my $ref_path = "23andme_v".$version."_hg19_ref.txt.gz";
 my $missing_ref_path = "sites_not_in_reference.txt";
 
@@ -34,6 +35,9 @@ print $output_fh "##fileformat=VCFv4.2\n";
 print $output_fh "##fileDate=$date\n";
 print $output_fh "##source=23andme2vcf.pl https://github.com/arrogantrobot/23andme2vcf\n";
 print $output_fh "##reference=file://$ref_path\n";
+print $output_fh "##INFO=<ID=AC,Number=.,Type=Integer,Description=\"Allele count in genotypes, for each ALT allele, in the same order as listed\">";
+print $output_fh "##INFO=<ID=AF,Number=.,Type=Float,Description=\"Allele Frequency, for each ALT allele, in the same order as listed\">";
+print $output_fh "##INFO=<ID=AN,Number=1,Type=Integer,Description=\"Total number of alleles in called genotypes\">";
 print $output_fh "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n";
 print $output_fh "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tGENOTYPE\n";
 
@@ -102,7 +106,26 @@ while(my $line = $fh->getline) {
   my ($alt,$genotype) = getAltAndGenotype($ref, $alleles);
 
   #output a line of VCF data
-  print $output_fh "$chr\t$pos\t$rsid\t$ref\t$alt\t.\t.\t.\tGT\t$genotype\n";
+  if($genotype eq "0" && $show_ref eq "1")
+  {
+    print $output_fh "$chr\t$pos\t$rsid\t$ref\t$alt\t.\t.\t.\tGT\t$genotype\n";
+  }
+  elsif($genotype eq "0/0" && $show_ref eq "1")
+  {
+    print $output_fh "$chr\t$pos\t$rsid\t$ref\t$alt\t.\t.\t.\tGT\t$genotype\n";
+  }
+  elsif($genotype eq "1")
+  {
+    print $output_fh "$chr\t$pos\t$rsid\t$ref\t$alt\t60\tPASS\tAN=1;AC=1;AF=1.00\tGT\t$genotype\n";
+  }
+  elsif($genotype eq "0/1")
+  {
+    print $output_fh "$chr\t$pos\t$rsid\t$ref\t$alt\t60\tPASS\tAN=2;AC=1;AF=0.50\tGT\t$genotype\n";
+  }
+  elsif($genotype eq "1/1")
+  {
+    print $output_fh "$chr\t$pos\t$rsid\t$ref\t$alt\t60\tPASS\tAN=2;AC=2;AF=1.00\tGT\t$genotype\n";
+  }
 }
 
 $fh->close;
@@ -164,7 +187,7 @@ sub getAltAndGenotype {
 }
 
 sub usage {
-  print "usage:   ./23andme2vcf /path/to/23andme/raw_data.(zip,txt) /path/to/output/file.vcf [23andme chip version, 3|4]\n";
+  print "usage:   ./23andme2vcf /path/to/23andme/raw_data.(zip,txt) /path/to/output/file.vcf [23andme chip version, 3|4] [Output non-variant alleles, yes|no]\n";
   exit(1);
 }
 
